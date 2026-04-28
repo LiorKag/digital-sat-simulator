@@ -1,6 +1,22 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 const https = require('https');
+const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
+
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
+
+autoUpdater.on('update-available', () => {
+  log.info('Update available.');
+});
+
+autoUpdater.on('update-downloaded', () => {
+  log.info('Update downloaded.');
+  autoUpdater.quitAndInstall();
+});
+
 
 let mainWindow;
 
@@ -76,6 +92,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  autoUpdater.checkForUpdatesAndNotify();
 });
 
 app.on('window-all-closed', () => {

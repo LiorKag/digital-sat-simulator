@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --dev\"",
     "build": "vite build && electron-builder",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "publish": "electron-builder --publish always"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,13 @@
     "files": [
       "**/*",
       "!testcode.txt"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "LiorKag",
+        "repo": "digital-sat-simulator"
+      }
     ]
   },
   "devDependencies": {
@@ -35,6 +43,8 @@
     "wait-on": "^9.0.5"
   },
   "dependencies": {
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.8.3",
     "katex": "^0.16.45",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",
