@@ -5,9 +5,10 @@
   "main": "main.js",
   "scripts": {
     "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron . --dev\"",
-    "build": "vite build && electron-builder",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "electron-builder --publish always"
+    "build": "vite build",
+    "pack": "npm run build && electron-builder --dir",
+    "publish": "npm run build && electron-builder --publish always",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
