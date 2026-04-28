@@ -1,0 +1,540 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Clock, ChevronRight, ChevronLeft, CheckCircle, Play, 
+  RefreshCw, BookOpen, Calculator, Award, Flag, Grid, 
+  Loader2, LineChart, Home, History 
+} from 'lucide-react';
+
+// Fallback data in case the pinesat API fails
+const FALLBACK_DATABASE = [
+  { domain: 'rw', difficulty: 'medium', text: "The board members were initially _____ to the CEO's proposal, but eventually recognized its potential.", options: ["resistant", "oblivious", "sympathetic", "accustomed"], correct: 0 },
+  { domain: 'rw', difficulty: 'easy', text: "The cat was very _____, spending most of its day sleeping lazily in the sun.", options: ["lethargic", "energetic", "hostile", "swift"], correct: 0 },
+  { domain: 'rw', difficulty: 'hard', text: "The author's prose is often praised for its _____, conveying profound and complex emotions with just a few carefully chosen words rather than elaborate paragraphs.", options: ["economy", "redundancy", "ambiguity", "ornamentation"], correct: 0 },
+  { domain: 'math', difficulty: 'medium', text: "If 2x - 4 = 10, what is the value of 4x?", options: ["7", "14", "28", "32"], correct: 2 },
+  { domain: 'math', difficulty: 'easy', text: "If x / 3 = 4, what is the value of x?", options: ["7", "1", "12", "3/4"], correct: 2 },
+  { domain: 'math', difficulty: 'hard', text: "A parabola in the xy-plane has the equation y = a(x - 2)² + 4. If the parabola passes through the origin (0,0), what is the value of a?", options: ["1", "-1", "2", "-2"], correct: 1 },
+  { domain: 'rw', difficulty: 'medium', text: "Many historians argue that the industrial revolution was the primary driver of urbanization. However, some economists point out that agricultural surpluses allowed for a specialized workforce.", options: ["The industrial revolution caused agricultural surpluses.", "Urbanization was entirely driven by the industrial revolution.", "There is debate over the sequence of factors that led to urbanization.", "Economists and historians agree."], correct: 2 },
+  { domain: 'math', difficulty: 'hard', text: "A circle in the xy-plane has the equation x² + y² - 6x + 8y = 0. What is the radius of the circle?", options: ["5", "10", "25", "100"], correct: 0 },
+];
+
+export default function App() {
+  const [appView, setAppView] = useState('menu'); // 'menu', 'test', 'history'
+  const [history, setHistory] = useState([]);
+
+  // Load history from local storage on boot
+  useEffect(() => {
+    const saved = localStorage.getItem('sat_local_history');
+    if (saved) {
+      try { setHistory(JSON.parse(saved)); } catch (e) { console.error("Error loading history", e); }
+    }
+  }, []);
+
+  const saveToHistory = (result) => {
+    const newHistory = [...history, { ...result, date: new Date().toISOString(), id: Date.now() }];
+    setHistory(newHistory);
+    localStorage.setItem('sat_local_history', JSON.stringify(newHistory));
+  };
+
+  if (appView === 'menu') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-slate-800">
+        <div className="max-w-4xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+          <div className="bg-slate-900 p-12 text-white text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-blue-600 opacity-20 transform -skew-y-2 origin-top-left"></div>
+            <h1 className="text-5xl font-extrabold mb-4 relative z-10 tracking-tight">Digital SAT Tracker</h1>
+            <p className="text-blue-200 text-xl relative z-10 font-light">Local Adaptive Engine & Progress Dashboard</p>
+          </div>
+          <div className="p-12 grid md:grid-cols-2 gap-8">
+            <button 
+              onClick={() => setAppView('test')}
+              className="group p-8 bg-blue-50 hover:bg-blue-600 border border-blue-100 rounded-2xl transition-all duration-300 text-left flex flex-col justify-between h-64 shadow-sm hover:shadow-xl"
+            >
+              <div>
+                <Play className="text-blue-600 group-hover:text-white mb-4" size={48} fill="currentColor" />
+                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-white mb-2 transition-colors">Start New Test</h2>
+                <p className="text-slate-600 group-hover:text-blue-100 transition-colors">Take a full-length, adaptive Digital SAT. Your results will be saved automatically.</p>
+              </div>
+            </button>
+            <button 
+              onClick={() => setAppView('history')}
+              className="group p-8 bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 rounded-2xl transition-all duration-300 text-left flex flex-col justify-between h-64 shadow-sm hover:shadow-xl"
+            >
+              <div>
+                <LineChart className="text-emerald-600 group-hover:text-white mb-4" size={48} />
+                <h2 className="text-2xl font-bold text-slate-800 group-hover:text-white mb-2 transition-colors">View Progress</h2>
+                <p className="text-slate-600 group-hover:text-emerald-100 transition-colors">Analyze your past scores, track your improvements, and review module paths.</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (appView === 'history') {
+    return (
+      <div className="min-h-screen bg-slate-50 p-8 text-slate-800">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-extrabold flex items-center">
+              <History className="mr-3 text-blue-600" size={32} /> Score History
+            </h1>
+            <button onClick={() => setAppView('menu')} className="flex items-center px-4 py-2 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 font-medium">
+              <Home className="mr-2" size={18} /> Back to Menu
+            </button>
+          </div>
+          
+          {history.length === 0 ? (
+            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center shadow-sm">
+              <Award className="mx-auto text-slate-300 mb-4" size={64} />
+              <h2 className="text-2xl font-bold text-slate-500">No tests taken yet.</h2>
+              <p className="text-slate-400 mt-2">Take your first adaptive test to start tracking progress.</p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-600 text-sm uppercase tracking-wider border-b border-slate-200">
+                    <th className="p-4 font-semibold">Date</th>
+                    <th className="p-4 font-semibold text-center">Total Score</th>
+                    <th className="p-4 font-semibold text-center">R&W Score</th>
+                    <th className="p-4 font-semibold text-center">Math Score</th>
+                    <th className="p-4 font-semibold text-right">R&W Path</th>
+                    <th className="p-4 font-semibold text-right">Math Path</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {[...history].reverse().map(h => (
+                    <tr key={h.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 font-medium text-slate-700">
+                        {new Date(h.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
+                      </td>
+                      <td className="p-4 text-center font-black text-xl text-blue-600">{h.total}</td>
+                      <td className="p-4 text-center font-bold text-slate-700">{h.rw}</td>
+                      <td className="p-4 text-center font-bold text-slate-700">{h.math}</td>
+                      <td className="p-4 text-right">
+                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${h.isRwHard ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {h.isRwHard ? 'Hard' : 'Easy'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${h.isMathHard ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {h.isMathHard ? 'Hard' : 'Easy'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // If appView === 'test', render the Test Engine
+  return <TestEngine onExit={() => setAppView('menu')} onComplete={saveToHistory} />;
+}
+
+// ---------------------------------------------------------
+// TEST ENGINE COMPONENT (The Bluebook UI)
+// ---------------------------------------------------------
+function TestEngine({ onExit, onComplete }) {
+  const [stage, setStage] = useState('loading'); // loading, intro, rw1, rwBreak, rw2, mathBreak, math1, math2Break, math2, results
+  const [testData, setTestData] = useState(null);
+  const [loadingMsg, setLoadingMsg] = useState('');
+  
+  const [scores, setScores] = useState({ rw1: 0, rw2: 0, math1: 0, math2: 0 });
+  const [isRwHard, setIsRwHard] = useState(false);
+  const [isMathHard, setIsMathHard] = useState(false);
+  
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [markedForReview, setMarkedForReview] = useState(new Set());
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [showGrid, setShowGrid] = useState(false);
+
+  // Set these low for rapid testing, normally 27/22
+  const CONFIG = { rwLength: 5, mathLength: 5, rwTime: 32 * 60, mathTime: 35 * 60 };
+
+  useEffect(() => {
+    const fetchAndPrepareData = async () => {
+      setStage('loading');
+      setLoadingMsg('Connecting to PineSAT API...');
+      
+      let rawQuestions = [];
+      try {
+        const response = await fetch('https://pinesat.com/api/questions');
+        if (!response.ok) throw new Error('API Response not OK');
+        const data = await response.json();
+        rawQuestions = Array.isArray(data) ? data : (data.questions || []);
+        if (rawQuestions.length === 0) throw new Error('Empty dataset returned');
+        setLoadingMsg('Data received. Compiling adaptive modules...');
+      } catch (err) {
+        console.warn("API Fetch failed, using fallback engine:", err.message);
+        setLoadingMsg('Network restricted. Booting offline fallback engine...');
+        rawQuestions = FALLBACK_DATABASE;
+      }
+
+      const formatQ = (q, index, prefix) => ({
+        id: `${prefix}_${index}_${Math.random().toString(36).substr(2, 5)}`,
+        text: q.text || q.question || "Missing question text",
+        options: q.options || q.choices || q.answerOptions || ["A", "B", "C", "D"],
+        correct: q.correct !== undefined ? q.correct : (q.correctAnswerIndex || 0)
+      });
+
+      const buildModule = (pool, targetLength, prefix) => {
+        if (pool.length === 0) pool = FALLBACK_DATABASE;
+        const moduleQuestions = [];
+        for (let i = 0; i < targetLength; i++) {
+          const randomQ = pool[Math.floor(Math.random() * pool.length)];
+          moduleQuestions.push(formatQ(randomQ, i, prefix));
+        }
+        return moduleQuestions;
+      };
+
+      const rwPool = rawQuestions.filter(q => (q.domain || q.subject || '').toLowerCase().includes('rw') || !q.domain);
+      const mathPool = rawQuestions.filter(q => (q.domain || q.subject || '').toLowerCase().includes('math'));
+      
+      setTimeout(() => {
+        setTestData({
+          rw1: buildModule(rwPool, CONFIG.rwLength, 'rw1'),
+          rw2Easy: buildModule(rwPool, CONFIG.rwLength, 'rw2e'),
+          rw2Hard: buildModule(rwPool, CONFIG.rwLength, 'rw2h'),
+          math1: buildModule(mathPool, CONFIG.mathLength, 'm1'),
+          math2Easy: buildModule(mathPool, CONFIG.mathLength, 'm2e'),
+          math2Hard: buildModule(mathPool, CONFIG.mathLength, 'm2h')
+        });
+        setStage('intro');
+      }, 1000);
+    };
+
+    fetchAndPrepareData();
+  }, []);
+
+  useEffect(() => {
+    let timer;
+    if (['rw1', 'rw2', 'math1', 'math2'].includes(stage)) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) { handleModuleSubmit(); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [stage]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const getModuleData = () => {
+    switch(stage) {
+      case 'rw1': return testData.rw1;
+      case 'rw2': return isRwHard ? testData.rw2Hard : testData.rw2Easy;
+      case 'math1': return testData.math1;
+      case 'math2': return isMathHard ? testData.math2Hard : testData.math2Easy;
+      default: return [];
+    }
+  };
+
+  const getModuleName = () => {
+    switch(stage) {
+      case 'rw1': return "Reading and Writing: Module 1";
+      case 'rw2': return "Reading and Writing: Module 2";
+      case 'math1': return "Math: Module 1";
+      case 'math2': return "Math: Module 2";
+      default: return "";
+    }
+  };
+
+  const startModule = (nextStage) => {
+    setCurrentIndex(0);
+    setAnswers({});
+    setMarkedForReview(new Set());
+    setShowGrid(false);
+    setTimeLeft(nextStage.includes('rw') ? CONFIG.rwTime : CONFIG.mathTime);
+    setStage(nextStage);
+  };
+
+  const handleSelect = (questionId, optionIndex) => {
+    setAnswers(prev => ({ ...prev, [questionId]: optionIndex }));
+  };
+
+  const handleNext = () => {
+    if (currentIndex < getModuleData().length - 1) setCurrentIndex(currentIndex + 1);
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+  };
+
+  const toggleReviewMark = () => {
+    const currentQId = getModuleData()[currentIndex].id;
+    setMarkedForReview(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(currentQId)) newSet.delete(currentQId);
+      else newSet.add(currentQId);
+      return newSet;
+    });
+  };
+
+  const calculateScore = (dataset) => {
+    let score = 0;
+    dataset.forEach(q => {
+      let correctIdx = q.correct;
+      if (typeof q.correct === 'undefined' && Array.isArray(q.options)) {
+        correctIdx = q.options.findIndex(o => o.isCorrect === true);
+        if (correctIdx === -1) correctIdx = 0;
+      }
+      if (answers[q.id] === correctIdx) score++; 
+    });
+    return score;
+  };
+
+  const handleModuleSubmit = () => {
+    const currentData = getModuleData();
+    const score = calculateScore(currentData);
+    const passThreshold = currentData.length * 0.65; 
+
+    if (stage === 'rw1') {
+      setScores(prev => ({ ...prev, rw1: score }));
+      setIsRwHard(score >= passThreshold);
+      setStage('rwBreak');
+    } else if (stage === 'rw2') {
+      setScores(prev => ({ ...prev, rw2: score }));
+      setStage('mathBreak');
+    } else if (stage === 'math1') {
+      setScores(prev => ({ ...prev, math1: score }));
+      setIsMathHard(score >= passThreshold);
+      setStage('math2Break');
+    } else if (stage === 'math2') {
+      setScores(prev => ({ ...prev, math2: score }));
+      setStage('scoring'); // Trigger scoring calculation
+    }
+  };
+
+  useEffect(() => {
+    if (stage === 'scoring') {
+      const finalScores = getFinalScores();
+      onComplete({ ...finalScores, isRwHard, isMathHard }); // Save to local storage
+      setStage('results');
+    }
+  }, [stage]);
+
+  const getFinalScores = () => {
+    let rwScaled = 200 + (scores.rw1 / CONFIG.rwLength) * 300;
+    if (isRwHard) rwScaled += (scores.rw2 / CONFIG.rwLength) * 300;
+    else rwScaled += (scores.rw2 / CONFIG.rwLength) * 150; 
+    
+    let mathScaled = 200 + (scores.math1 / CONFIG.mathLength) * 300;
+    if (isMathHard) mathScaled += (scores.math2 / CONFIG.mathLength) * 300;
+    else mathScaled += (scores.math2 / CONFIG.mathLength) * 150;
+
+    const round10 = (num) => Math.round(num / 10) * 10;
+    
+    return {
+      rw: Math.min(800, round10(rwScaled)),
+      math: Math.min(800, round10(mathScaled)),
+      total: Math.min(1600, round10(rwScaled) + round10(mathScaled))
+    };
+  };
+
+  // --- Rendering ---
+  if (stage === 'loading') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="text-center">
+          <Loader2 className="animate-spin text-blue-600 mx-auto mb-4" size={48} />
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Preparing Simulator</h2>
+          <p className="text-slate-500">{loadingMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === 'intro') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 p-10 text-center">
+          <h1 className="text-3xl font-bold mb-4">Ready to Begin?</h1>
+          <p className="text-slate-600 mb-8">This is a full-length, adaptive test. Ensure you have a stable connection and enough time to complete the modules.</p>
+          <button onClick={() => startModule('rw1')} className="w-full py-4 bg-slate-900 hover:bg-black text-white font-bold rounded-lg text-lg flex items-center justify-center transition-colors">
+            <Play className="mr-2" fill="currentColor" size={20} /> Start Section 1: Reading and Writing
+          </button>
+          <button onClick={onExit} className="mt-4 text-slate-500 hover:text-slate-800 font-medium">Cancel & Return to Menu</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage.includes('Break')) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-white p-10 rounded-xl shadow-lg text-center border border-slate-200">
+          <CheckCircle className="mx-auto text-emerald-500 mb-6" size={64} strokeWidth={1.5} />
+          <h2 className="text-2xl font-bold mb-3">Module Complete</h2>
+          <p className="text-slate-600 mb-8">Take a short break. The adaptive engine has selected your next module.</p>
+          <button 
+            onClick={() => {
+              if (stage === 'rwBreak') startModule('rw2');
+              if (stage === 'mathBreak') startModule('math1');
+              if (stage === 'math2Break') startModule('math2');
+            }}
+            className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg flex items-center justify-center transition-colors"
+          >
+            Start Next Module <ChevronRight className="ml-2" size={18} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === 'results') {
+    const finalScores = getFinalScores();
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+          <div className="bg-slate-900 p-8 text-white text-center">
+            <h1 className="text-3xl font-bold mb-2">Test Complete</h1>
+            <div className="text-7xl font-black mt-4 mb-2 tracking-tight text-white">{finalScores.total}</div>
+            <p className="text-slate-400 font-medium tracking-wide">TOTAL SCORE (400 - 1600)</p>
+          </div>
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <p className="text-slate-600 font-medium">Your progress has been automatically saved to your local dashboard.</p>
+            </div>
+            <button onClick={onExit} className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl flex items-center justify-center transition-colors">
+              Return to Main Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentData = getModuleData();
+  const currentQuestion = currentData[currentIndex];
+  const isMath = stage.includes('math');
+  const questionText = typeof currentQuestion.text === 'object' && currentQuestion.text !== null ? (currentQuestion.text.text || JSON.stringify(currentQuestion.text)) : currentQuestion.text;
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col font-sans">
+      {/* Top Header - Bluebook Style */}
+      <div className="flex justify-between items-center bg-slate-100 px-6 py-4 border-b border-slate-300">
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-800 text-lg">{getModuleName()}</span>
+          <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">College Board</span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 font-mono text-xl font-bold px-4 py-2 text-slate-800">
+            <span>{formatTime(timeLeft)}</span>
+            <Clock size={20} className={timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-slate-400'} />
+          </div>
+        </div>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex justify-between items-center bg-white px-6 py-3 border-b border-slate-200 shadow-sm z-10">
+        <div className="flex items-center">
+          <div className="bg-slate-800 text-white font-bold h-8 w-8 rounded flex items-center justify-center mr-4">
+            {currentIndex + 1}
+          </div>
+          <button onClick={toggleReviewMark} className={`flex items-center text-sm font-bold transition-colors px-3 py-1.5 rounded-md ${markedForReview.has(currentQuestion.id) ? 'bg-yellow-100 text-yellow-800' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <Flag size={16} className={`mr-2 ${markedForReview.has(currentQuestion.id) ? 'fill-current text-yellow-600' : ''}`} /> 
+            Mark for Review
+          </button>
+        </div>
+        <div className="flex items-center space-x-2">
+           {isMath && (
+            <button className="flex items-center text-sm font-bold text-slate-600 hover:bg-slate-100 px-3 py-1.5 rounded-md transition-colors">
+              <Calculator size={16} className="mr-2" /> Calculator
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Split Screen */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative bg-slate-50">
+        
+        {/* Navigation Grid Overlay */}
+        {showGrid && (
+          <div className="absolute bottom-full mb-0 w-full bg-slate-800 text-white z-20 p-6 border-b border-slate-700 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold">Review Module</h3>
+              <button onClick={() => setShowGrid(false)} className="text-slate-300 hover:text-white text-sm">Close X</button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {currentData.map((q, idx) => {
+                const isAnswered = answers[q.id] !== undefined;
+                const isMarked = markedForReview.has(q.id);
+                return (
+                  <button key={q.id} onClick={() => { setCurrentIndex(idx); setShowGrid(false); }} className={`relative w-10 h-10 border border-slate-600 rounded flex items-center justify-center font-bold text-sm ${idx === currentIndex ? 'ring-2 ring-white bg-slate-700' : isAnswered ? 'bg-blue-600 text-white border-blue-500' : 'hover:bg-slate-700'}`}>
+                    {idx + 1}
+                    {isMarked && <Flag size={10} className="absolute -top-1.5 -right-1.5 text-yellow-400 fill-current" />}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Left Column: Text */}
+        <div className="md:w-1/2 border-r border-slate-200 p-8 md:p-12 overflow-y-auto bg-white">
+          <p className="text-lg md:text-[22px] leading-[1.6] text-slate-800 whitespace-pre-wrap font-serif">
+            {questionText}
+          </p>
+        </div>
+        
+        {/* Right Column: Options */}
+        <div className="md:w-1/2 p-8 md:p-12 overflow-y-auto bg-slate-50 flex flex-col">
+          <div className="space-y-3 mt-4">
+            {currentQuestion.options.map((opt, idx) => {
+              const isSelected = answers[currentQuestion.id] === idx;
+              const char = String.fromCharCode(65 + idx);
+              const optText = typeof opt === 'object' && opt !== null ? (opt.text || opt.value || JSON.stringify(opt)) : opt;
+
+              return (
+                <button key={idx} onClick={() => handleSelect(currentQuestion.id, idx)} className={`w-full text-left px-5 py-4 rounded border-2 transition-all flex items-start ${isSelected ? 'border-blue-600 bg-blue-50' : 'border-slate-300 bg-white hover:border-slate-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 font-bold border-2 flex-shrink-0 ${isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 border-slate-400'}`}>
+                    {char}
+                  </div>
+                  <span className={`text-[19px] leading-snug mt-0.5 ${isSelected ? 'text-slate-900 font-medium' : 'text-slate-800'}`}>
+                    {optText}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="bg-slate-100 border-t border-slate-300 px-6 py-4 flex justify-between items-center z-30 relative">
+        <button className="flex items-center font-bold text-slate-700 bg-white border border-slate-300 px-4 py-2 rounded shadow-sm hover:bg-slate-50" onClick={() => setShowGrid(!showGrid)}>
+          <Grid size={18} className="mr-2" /> {showGrid ? 'Hide' : 'Show'} Progress
+        </button>
+        
+        <div className="flex space-x-3">
+          <button onClick={handlePrev} disabled={currentIndex === 0} className={`px-6 py-2 rounded font-bold transition-colors ${currentIndex === 0 ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 shadow-sm'}`}>
+            Back
+          </button>
+          
+          {currentIndex < currentData.length - 1 ? (
+            <button onClick={handleNext} className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold shadow-sm transition-colors">
+              Next
+            </button>
+          ) : (
+            <button onClick={handleModuleSubmit} className="px-8 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-bold shadow-sm transition-colors">
+              Submit
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

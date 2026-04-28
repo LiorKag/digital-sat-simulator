@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAT Simulator</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://pinesat.com ws://localhost:* http://localhost:* https://www.desmos.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.desmos.com; style-src 'self' 'unsafe-inline' https://www.desmos.com; font-src 'self' https://www.desmos.com data:; img-src 'self' data: https://www.desmos.com; worker-src 'self' blob:;">
+    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=36be0556950a48e99a85ce8fff8934de"></script>
+    <style>
+      html, body, #root { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+# --- Node Dependencies ---
+node_modules/
+package-lock.json
+yarn.lock
+
+# --- React Build Outputs ---
+build/
+dist/
+
+# --- Electron Builder Outputs (CRITICAL) ---
+dist-electron/
+release/
+out/
+*.exe
+*.dmg
+*.AppImage
+*.zip
+*.tar.gz
+
+# --- Environment & Secrets ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- IDE & OS Files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
