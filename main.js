@@ -24,6 +24,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(__dirname, 'assets', 'logo.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -38,7 +39,6 @@ function createWindow() {
     // mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
-    mainWindow.webContents.openDevTools();
   }
 
   mainWindow.on('closed', () => {

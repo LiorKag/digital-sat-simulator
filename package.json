@@ -17,7 +17,8 @@
   "build": {
     "appId": "com.sat.simulator",
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/logo.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -25,6 +26,7 @@
     },
     "files": [
       "dist/**/*",
+      "assets/**/*",
       "main.js",
       "preload.js",
       "package.json"
