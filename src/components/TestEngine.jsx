@@ -218,7 +218,7 @@ export default function TestEngine({ onExit, onComplete, resume, reviewData, foc
           id: `${prefix}_${index}`,
           text: q.text || '',
           question: q.question || '',
-          options: q.options || ['A', 'B', 'C', 'D'],
+          options: Array.isArray(q.options) ? q.options : ['A', 'B', 'C', 'D'],
           correct: q.correct !== undefined ? q.correct : 0,
           domain: q.domain || 'Uncategorized',
           explanation: q.explanation || 'No explanation available for this question.',
@@ -359,25 +359,7 @@ export default function TestEngine({ onExit, onComplete, resume, reviewData, foc
   const endTimeRef = useRef(null);
   const isActiveTestStage = ['focusDrill', 'customTest', 'rw1', 'rw2', 'math1', 'math2'].includes(stage);
   const prevStageRef = useRef(null);
-  useEffect(() => {
-    if (isActiveTestStage && !reviewMode) {
-      // Only reset the wall-clock anchor when first entering a new active stage.
-      // This prevents handleModuleSubmit identity changes from restarting the timer.
-      if (prevStageRef.current !== stage) {
-        endTimeRef.current = Date.now() + (timeLeft * 1000);
-        prevStageRef.current = stage;
-      }
-      const timer = setInterval(() => {
-        const remaining = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
-        setTimeLeft(remaining);
-        if (remaining <= 0) {
-          clearInterval(timer);
-          handleModuleSubmit();
-        }
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [stage, reviewMode, handleModuleSubmit, isActiveTestStage]);
+
 
   const moduleData = useMemo(() => {
     if (reviewMode && testData) return testData.reviewQuestions || [];
@@ -626,6 +608,26 @@ export default function TestEngine({ onExit, onComplete, resume, reviewData, foc
   }, [moduleData, stage, answers, allAnswers, timeSpent, scores, isRwHard, isMathHard, testData, focusModeDomain, onComplete, onExit]);
 
   useEffect(() => {
+    if (isActiveTestStage && !reviewMode) {
+      // Only reset the wall-clock anchor when first entering a new active stage.
+      // This prevents handleModuleSubmit identity changes from restarting the timer.
+      if (prevStageRef.current !== stage) {
+        endTimeRef.current = Date.now() + (timeLeft * 1000);
+        prevStageRef.current = stage;
+      }
+      const timer = setInterval(() => {
+        const remaining = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+        setTimeLeft(remaining);
+        if (remaining <= 0) {
+          clearInterval(timer);
+          handleModuleSubmit();
+        }
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [stage, reviewMode, handleModuleSubmit, isActiveTestStage]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
       if (reviewMode || (!['customTest', 'focusDrill', 'rw1', 'rw2', 'math1', 'math2'].includes(stage) && !reviewMode)) return;
@@ -671,7 +673,7 @@ export default function TestEngine({ onExit, onComplete, resume, reviewData, foc
   }
   if (stage === 'results') return <div className="h-screen w-screen flex items-center justify-center bg-slate-50"><div className="bg-white p-10 rounded shadow text-center border"><h2 className="text-3xl font-bold mb-4">Test Finished</h2><p className="mb-6 text-slate-500">Your score has been saved to the dashboard.</p><button onClick={onExit} className="px-6 py-3 bg-slate-800 text-white rounded-full font-bold">Return to Dashboard</button></div></div>;
 
-  if (!currentQuestion) {
+  if (!currentQuestion || Object.keys(currentQuestion).length === 0 || !currentQuestion.options) {
     return <div className="h-screen w-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-[#2A275D]" size={40} /></div>;
   }
 

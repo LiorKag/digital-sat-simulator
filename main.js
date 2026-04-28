@@ -38,6 +38,7 @@ function createWindow() {
     // mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
+    mainWindow.webContents.openDevTools();
   }
 
   mainWindow.on('closed', () => {
@@ -79,13 +80,13 @@ app.whenReady().then(() => {
     }
 
     headers['Content-Security-Policy'] = [
-      "default-src 'self' http://localhost:* https://www.desmos.com; " +
-      "connect-src 'self' https://pinesat.com ws://localhost:* http://localhost:* https://www.desmos.com; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.desmos.com http://localhost:*; " +
-      "style-src 'self' 'unsafe-inline' https://www.desmos.com; " +
-      "font-src 'self' https://www.desmos.com data:; " +
-      "img-src 'self' data: blob: https://www.desmos.com; " +
-      "worker-src 'self' blob:;"
+      "default-src 'self' file: http://localhost:* https://www.desmos.com; " +
+      "connect-src 'self' file: https://pinesat.com ws://localhost:* http://localhost:* https://www.desmos.com; " +
+      "script-src 'self' file: 'unsafe-inline' 'unsafe-eval' https://www.desmos.com http://localhost:*; " +
+      "style-src 'self' file: 'unsafe-inline' https://www.desmos.com; " +
+      "font-src 'self' file: https://www.desmos.com data:; " +
+      "img-src 'self' file: data: blob: https://www.desmos.com; " +
+      "worker-src 'self' file: blob:;"
     ];
 
     callback({ responseHeaders: headers });
