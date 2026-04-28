@@ -27,6 +27,9 @@ export default function DrillResults({ result, setAppView, setReviewData, setCus
   };
 
   const handleReview = () => {
+    setCustomTestParams(null);
+    setResumeMode(false);
+    setFocusModeDomain(null);
     setReviewData(result);
     setAppView('test');
   };

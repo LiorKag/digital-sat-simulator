@@ -817,8 +817,7 @@ export default function TestEngine({ onExit, onComplete, resume, reviewData, foc
                 <button
                   key={idx}
                   onClick={() => !reviewMode && handleSelect(currentQuestion.id, idx)}
-                  disabled={isEliminated || reviewMode}
-                  className={`w-full flex justify-between items-center border-[1.5px] rounded-xl p-4 transition-colors ${btnClasses}`}
+                  className={`w-full flex justify-between items-center border-[1.5px] rounded-xl p-4 transition-colors ${isEliminated && !reviewMode ? 'cursor-default' : ''} ${btnClasses}`}
                 >
                   <div className={`flex items-center ${isEliminated && !reviewMode ? 'line-through text-slate-500' : ''}`}>
                     <div className={`w-8 h-8 rounded-full border-[1.5px] flex items-center justify-center font-bold text-sm mr-4 shrink-0 ${circleClasses}`}>
